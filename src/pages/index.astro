@@ -2,10 +2,7 @@
 import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import ArrowCard from "@components/ArrowCard";
-import StackCard from "@components/StackCard.astro";
 import { SITE, SOCIALS } from "@consts";
-import TwinklingStars from "@components/TwinklingStars.astro";
-import MeteorShower from "@components/MeteorShower.astro";
 
 const posts = (await getCollection("blog"))
   .filter((post) => !post.data.draft)
@@ -14,30 +11,6 @@ const posts = (await getCollection("blog"))
 ---
 
 <PageLayout title="Home" description={SITE.DESCRIPTION}>
-  <!-- Light Mode: Particles -->
-  <div class="absolute inset-0 block dark:hidden">
-    <div id="particles1" class="fixed inset-0"></div>
-    <div id="particles2" class="fixed inset-0"></div>
-    <div id="particles3" class="fixed inset-0"></div>
-  </div>
-
-  <!-- Dark Theme: Stars -->
-  <div class="absolute inset-0 bg-black hidden dark:block">
-    <div id="stars1" class="fixed inset-0"></div>
-    <div id="stars2" class="fixed inset-0"></div>
-    <div id="stars3" class="fixed inset-0"></div>
-  </div>
-
-  <!-- Dark Theme: Twinkling Stars / Metors -->
-  <div id="galaxy" class="fixed inset-0">
-    <div class="hidden dark:block">
-      <TwinklingStars />
-      <MeteorShower />
-    </div>
-  </div>
-
-  <script is:inline src="/js/bg.js"></script>
-
   <div class="relative bg-white dark:bg-black mt-24">
     <div class="mx-auto max-w-screen-sm p-5 space-y-12 pb-16">
       <!-- About Section -->
@@ -75,7 +48,7 @@ const posts = (await getCollection("blog"))
       <section class="animate">
         <div>
           <p class="font-semibold text-black dark:text-white">
-            Let's Connect
+            Connect
           </p>
           <p>
             Reach out to me via email or on social media.
@@ -125,55 +98,6 @@ const posts = (await getCollection("blog"))
           </ul>
         </div>
       </section>
-
-      <!-- Tech Stack Section -->
-      <!-- <section class="animate">
-        <div class="space-y-4">
-          <p class="font-semibold text-black dark:text-white">
-            Website build with
-          </p>
-          <div class="flex flex-wrap items-center gap-2 mt-5">
-            {stack.map(item => (
-              <StackCard 
-                text={item.text}
-                icon={item.icon}
-                href={item.href}
-              />
-            ))}
-          </div>
-          <div>
-            Performing reactivity and statefulness, special guest
-            <a href="https://www.solidjs.com/" target="_blank" class="w-fit group underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend">
-              <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend">
-                SolidJS
-              </span>
-            </a>
-          </div>
-        </div>
-      </section> -->
-
-      <!-- Project Preview Section -->
-      <!-- <section class="animate">
-        <div class="space-y-4">
-          <div class="flex justify-between">
-            <p class="font-semibold text-black dark:text-white">
-              Recent projects
-            </p>
-            <a href="/projects" class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend">
-              <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend">
-                All projects
-              </span>
-            </a>
-          </div>
-          <ul class="space-y-4">
-            {projects.map((project) => (
-              <li>
-                <ArrowCard entry={project} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section> -->
     </div>
   </div>
 </PageLayout>
