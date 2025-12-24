@@ -3,6 +3,8 @@ import { getCollection } from "astro:content";
 import PageLayout from "@layouts/PageLayout.astro";
 import ArrowCard from "@components/ArrowCard";
 import { SITE, SOCIALS } from "@consts";
+import TopLayout from "@layouts/TopLayout.astro";
+import BottomLayout from "@layouts/BottomLayout.astro";
 
 const posts = (await getCollection("blog"))
   .filter((post) => !post.data.draft)
@@ -11,17 +13,15 @@ const posts = (await getCollection("blog"))
 ---
 
 <PageLayout title="Home" description={SITE.DESCRIPTION}>
-  <div class="relative bg-white dark:bg-black mt-24">
-    <div class="mx-auto max-w-screen-sm p-5 space-y-12 pb-16">
-      <!-- About Section -->
-      <section class="animate">
-        <article class="pb-0">
+    <TopLayout>
+    <!-- About Section -->
+      <div class="animate">
           <p>
-            I am a <b><i>software engineer</i></b>, <b><i>ui/ux designer</i></b
+          I am a <b><i>software engineer</i></b>, <b><i>ui/ux designer</i></b
             >, <b><i>product planner</i></b>, <b><i>mentor</i></b>, <b
-              ><i>student</i></b
+            ><i>student</i></b
             >, <b><i>minimalist</i></b>, <b><i>eternal optimist</i></b>, <b
-              ><i>crypto enthusiast</i></b
+            ><i>crypto enthusiast</i></b
             > and <b><i>sarcasm connoisseur</i></b>.
           </p>
           <p>
@@ -41,9 +41,7 @@ const posts = (await getCollection("blog"))
             I currently work as a software engineer at StreamlineFS, where I do
             product planning, design and development.
           </p>
-        </article>
-      </section>
-
+      </div>
       <!-- Contact Section -->
       <section class="animate">
         <div>
@@ -70,27 +68,29 @@ const posts = (await getCollection("blog"))
             ))}
         </div>
       </section>
+    </TopLayout>
 
-      <!-- Blog Preview Section -->
-      <section class="animate">
-        <div class="space-y-4">
-          <div class="flex justify-between">
-            <p class="font-semibold text-black dark:text-white">Recent posts</p>
-            <a
-              href="/blog"
-              class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend"
-            >
-              <span
-                class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend"
-              >
-                All posts
-              </span>
-            </a>
-          </div>
-          <ul class="space-y-4">
-            {
-              posts.map((post) => (
-                <li>
+  <BottomLayout>
+    <!-- Blog Preview Section -->
+    <section class="animate">
+      <div class="space-y-4">
+        <div class="flex justify-between">
+          <p class="font-semibold text-black dark:text-white">Recent posts</p>
+          <a
+          href="/blog"
+          class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend"
+          >
+          <span
+          class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend"
+          >
+          All posts
+        </span>
+      </a>
+    </div>
+    <ul class="space-y-4">
+      {
+        posts.map((post) => (
+          <li>
                   <ArrowCard entry={post} />
                 </li>
               ))
@@ -98,6 +98,5 @@ const posts = (await getCollection("blog"))
           </ul>
         </div>
       </section>
-    </div>
-  </div>
-</PageLayout>
+    </BottomLayout>
+</PageLayout>    
