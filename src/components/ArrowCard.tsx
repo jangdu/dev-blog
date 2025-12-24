@@ -8,6 +8,21 @@ type Props = {
 };
 
 export default function ArrowCard({ entry, pill }: Props) {
+  // 카테고리 추출 및 포맷팅
+  const getCategoryFromSlug = (slug: string) => {
+    const segments = slug.split("/");
+    return segments.length > 1 ? segments[0] : null;
+  };
+
+  const formatCategoryName = (category: string) => {
+    return category
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const category = getCategoryFromSlug(entry.slug);
+
   return (
     <a
       href={`/${entry.collection}/${entry.slug}`}
@@ -18,6 +33,11 @@ export default function ArrowCard({ entry, pill }: Props) {
           {pill && (
             <div class="text-sm capitalize px-2 py-0.5 rounded-full border border-black/15 dark:border-white/25">
               {entry.collection === "blog" ? "post" : "project"}
+            </div>
+          )}
+          {category && (
+            <div class="text-xs font-medium px-2 py-0.5 rounded border">
+              {formatCategoryName(category)}
             </div>
           )}
           <div class="text-sm uppercase">{formatDate(entry.data.date)}</div>

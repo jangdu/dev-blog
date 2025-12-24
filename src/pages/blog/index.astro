@@ -14,6 +14,12 @@ const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort(
   (a, b) => a.localeCompare(b),
 );
 
+// 카테고리 추출 (slug의 첫 번째 세그먼트)
+const categories = [...new Set(posts.map((post) => {
+  const segments = post.slug.split('/');
+  return segments.length > 1 ? segments[0] : 'Uncategorized';
+}))].sort((a, b) => a.localeCompare(b));
+
 const estimated_initial_size =
   28 + posts.length * 158 + (posts.length - 1) * 12;
 ---
@@ -39,6 +45,7 @@ const estimated_initial_size =
         client:load
         entry_name={"posts"}
         tags={tags}
+        categories={categories}
         data={posts}
       />
     </div>

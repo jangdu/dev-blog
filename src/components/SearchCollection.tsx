@@ -8,16 +8,26 @@ import SearchBar from "@components/SearchBar"
 type Props = {
   entry_name: string
   tags: string[]
+  categories?: string[]
   data: CollectionEntry<"blog">[] | CollectionEntry<'projects'>[]
 }
 
-export default function SearchCollection({ entry_name, data, tags }: Props) {
+export default function SearchCollection({ entry_name, data, tags, categories }: Props) {
   const coerced = data.map((entry) => entry as CollectionEntry<'blog'>);
 
   const [query, setQuery] = createSignal("");
   const [filter, setFilter] = createSignal(new Set<string>())
+  const [categoryFilter, setCategoryFilter] = createSignal(new Set<string>())
   const [collection, setCollection] = createSignal<CollectionEntry<'blog'>[]>([])
   const [descending, setDescending] = createSignal(false);
+
+  // 카테고리 이름을 읽기 쉽게 변환
+  const formatCategoryName = (category: string) => {
+    return category
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   const fuse = new Fuse(coerced, {
     keys: ["slug", "data.title", "data.summary", "data.tags"],
@@ -30,13 +40,23 @@ export default function SearchCollection({ entry_name, data, tags }: Props) {
     const filtered = (query().length < 2
       ? coerced
       : fuse.search(query()).map((result) => result.item)
-    ).filter((entry) =>
-      Array.from(filter()).every((value) =>
+    ).filter((entry) => {
+      // 태그 필터
+      const tagMatch = Array.from(filter()).every((value) =>
         entry.data.tags.some((tag: string) =>
           tag.toLowerCase() === String(value).toLowerCase()
         )
-      )
-    );
+      );
+
+      // 카테고리 필터
+      const categoryMatch = categoryFilter().size === 0 || Array.from(categoryFilter()).some((category) => {
+        const segments = entry.slug.split('/');
+        const entryCategory = segments.length > 1 ? segments[0] : 'Uncategorized';
+        return entryCategory === category;
+      });
+
+      return tagMatch && categoryMatch;
+    });
     setCollection(descending() ? filtered.toReversed() : filtered)
   })
 
@@ -53,8 +73,18 @@ export default function SearchCollection({ entry_name, data, tags }: Props) {
     )
   }
 
+  function toggleCategory(category: string) {
+    setCategoryFilter((prev) =>
+      new Set(prev.has(category)
+        ? [...prev].filter((c) => c !== category)
+        : [...prev, category]
+      )
+    )
+  }
+
   function clearFilters() {
     setFilter(new Set<string>());
+    setCategoryFilter(new Set<string>());
   }
 
   const onSearchInput = (e: Event) => {
@@ -76,9 +106,58 @@ export default function SearchCollection({ entry_name, data, tags }: Props) {
         <div class="sticky top-24 mt-7">
           {/* Search Bar */}
           <SearchBar onSearchInput={onSearchInput} query={query} setQuery={setQuery} placeholderText={`Search ${entry_name}`} />
+
+          {/* Category Filters */}
+          {categories && categories.length > 0 && (
+            <>
+              <div class="relative flex flex-row justify-between w-full">
+                <p class="text-sm font-semibold uppercase my-4 text-black dark:text-white">Categories</p>
+              </div>
+              <ul class="flex flex-wrap sm:flex-col gap-1.5 mb-6">
+                <For each={categories}>
+                  {(category) => (
+                    <li class="sm:w-full">
+                      <button
+                        onClick={() => toggleCategory(category)}
+                        class={cn(
+                          "w-full px-2 py-1 rounded",
+                          "flex gap-2 items-center",
+                          "bg-black/5 dark:bg-white/10",
+                          "hover:bg-black/10 hover:dark:bg-white/15",
+                          "transition-colors duration-300 ease-in-out",
+                          categoryFilter().has(category) && "text-black dark:text-white"
+                        )}
+                      >
+                        <svg
+                          class={cn(
+                            "shrink-0 size-5 fill-black/50 dark:fill-white/50",
+                            "transition-colors duration-300 ease-in-out",
+                            categoryFilter().has(category) && "fill-black dark:fill-white"
+                          )}
+                        >
+                          <use
+                            href={`/ui.svg#square`}
+                            class={cn(!categoryFilter().has(category) ? "block" : "hidden")}
+                          />
+                          <use
+                            href={`/ui.svg#square-check`}
+                            class={cn(categoryFilter().has(category) ? "block" : "hidden")}
+                          />
+                        </svg>
+                        <span class="truncate block min-w-0 pt-[2px]">
+                          {formatCategoryName(category)}
+                        </span>
+                      </button>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </>
+          )}
+
           {/* Tag Filters */}
           <div class="relative flex flex-row justify-between w-full"><p class="text-sm font-semibold uppercase my-4 text-black dark:text-white">Tags</p>
-            {filter().size > 0 && (
+            {(filter().size > 0 || categoryFilter().size > 0) && (
               <button
                 onClick={clearFilters}
                 class="absolute flex justify-center items-center h-full w-10 right-0 top-0 stroke-neutral-400 dark:stroke-neutral-500 hover:stroke-neutral-600 hover:dark:stroke-neutral-300"
