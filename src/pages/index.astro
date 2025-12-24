@@ -13,62 +13,57 @@ const posts = (await getCollection("blog"))
 ---
 
 <PageLayout title="Home" description={SITE.DESCRIPTION}>
-    <TopLayout>
+  <TopLayout>
     <!-- About Section -->
-      <div class="animate">
-          <p>
-          I am a <b><i>software engineer</i></b>, <b><i>ui/ux designer</i></b
-            >, <b><i>product planner</i></b>, <b><i>mentor</i></b>, <b
-            ><i>student</i></b
-            >, <b><i>minimalist</i></b>, <b><i>eternal optimist</i></b>, <b
-            ><i>crypto enthusiast</i></b
-            > and <b><i>sarcasm connoisseur</i></b>.
-          </p>
-          <p>
-            I love to both build and break things. I am motivated by challenging
-            projects with self-guided research and dynamic problem solving. My
-            true passion is crafting creative front end designs with unique
-            takes on color, typography and motion.
-          </p>
-          <p>During my career</p>
-          <p>
-            I have built products ranging from marketing and ecommerce websites
-            to complex enterprise apps with focus on delivering fast, elegant
-            code along with delightful user interfaces.
-          </p>
-          <p>Now</p>
-          <p>
-            I currently work as a software engineer at StreamlineFS, where I do
-            product planning, design and development.
-          </p>
-      </div>
-      <!-- Contact Section -->
-      <section class="animate">
-        <div>
-          <p class="font-semibold text-black dark:text-white">
-            Connect
-          </p>
-          <p>
-            Reach out to me via email or on social media.
-          </p>
-          <div class="grid grid-cols-4 gap-y-2 mt-4 auto-cols-min">
-            {SOCIALS.map(social => (
-              <div class="col-span-1 flex items-center gap-1">
-                <span class="whitespace-nowrap truncate">
-                  {social.NAME}
-                </span>
-              </div>
-              <div class="col-span-3 truncate">
-                <a href={social.HREF} target="_blank" class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend">
-                  <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend">
-                    {social.TEXT}
-                  </span>
-                </a>
-              </div>
-            ))}
+    <div class="animate pb-8">
+      <div class="flex flex-row items-start gap-6">
+        <div class="flex-shrink-0">
+          <img
+            src="/avatar.png"
+            alt="jangdu"
+            class="w-32 h-32 rounded-full object-cover border-2 border-black/10 dark:border-white/20 shadow-lg"
+          />
         </div>
-      </section>
-    </TopLayout>
+        <div class="flex-1 text-left">
+          <h1
+            class="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-3"
+          >
+            jangdu
+          </h1>
+          <p class="text-lg text-black/75 dark:text-white/75 mb-2">
+            Node.js Backend Developer
+          </p>
+          <p class="text-base text-black/60 dark:text-white/60">
+            안녕하세요, Node.js 백엔드 개발자 장두혁입니다.
+          </p>
+          <div class="flex flex-col gap-y-2 mt-4 auto-cols-min">
+            {
+              SOCIALS.map((social) => (
+                <div class="flex flex-row gap-2">
+                  <div class="col-span-1 flex items-center gap-1">
+                    <span class="whitespace-nowrap truncate">
+                      {social.NAME}
+                    </span>
+                  </div>
+                  <div class="col-span-3 truncate">
+                    <a
+                      href={social.HREF}
+                      target="_blank"
+                      class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend"
+                    >
+                      <span class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend">
+                        {social.TEXT}
+                      </span>
+                    </a>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </TopLayout>
 
   <BottomLayout>
     <!-- Blog Preview Section -->
@@ -77,26 +72,26 @@ const posts = (await getCollection("blog"))
         <div class="flex justify-between">
           <p class="font-semibold text-black dark:text-white">Recent posts</p>
           <a
-          href="/blog"
-          class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend"
+            href="/blog"
+            class="w-fit col-span-3 group flex gap-1 items-center underline decoration-[.5px] decoration-black/25 dark:decoration-white/50 hover:decoration-black dark:hover:decoration-white text-black dark:text-white underline-offset-2 blend"
           >
-          <span
-          class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend"
-          >
-          All posts
-        </span>
-      </a>
-    </div>
-    <ul class="space-y-4">
-      {
-        posts.map((post) => (
-          <li>
-                  <ArrowCard entry={post} />
-                </li>
-              ))
-            }
-          </ul>
+            <span
+              class="text-black/75 dark:text-white/75 group-hover:text-black group-hover:dark:text-white blend"
+            >
+              All posts
+            </span>
+          </a>
         </div>
-      </section>
-    </BottomLayout>
-</PageLayout>    
+        <ul class="space-y-4">
+          {
+            posts.map((post) => (
+              <li>
+                <ArrowCard entry={post} />
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+  </BottomLayout>
+</PageLayout>
