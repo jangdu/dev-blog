@@ -8,10 +8,10 @@ export const SITE: Site = {
 };
 
 // // Work Page
-// export const WORK: Page = {
-//   TITLE: "Work",
-//   DESCRIPTION: "Places I have worked.",
-// }
+export const WORK: Page = {
+  TITLE: "Work",
+  DESCRIPTION: "Places I have worked.",
+};
 
 // Blog Page
 export const BLOG: Page = {
@@ -20,10 +20,10 @@ export const BLOG: Page = {
 };
 
 // Projects Page
-// export const PROJECTS: Page = {
-//   TITLE: "Projects",
-//   DESCRIPTION: "Projects I have worked on.",
-// };
+export const PROJECTS: Page = {
+  TITLE: "Projects",
+  DESCRIPTION: "Projects I have worked on.",
+};
 
 // Search Page
 export const SEARCH: Page = {
