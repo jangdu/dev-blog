@@ -1,33 +1,30 @@
 ---
 title: "이터레이터 패턴 (Iterator Pattern)"
-summary: "TypeScript/JavaScript에서 이터레이터 패턴 구현"
-date: "Dec 24 2024"
+summary: "TypeScript에서 이터레이터 패턴 구현"
+date: "April 08 2024"
 draft: false
 tags:
   - Design Pattern
   - TypeScript
-  - JavaScript
 ---
 
 이터레이터 패턴(Iterator Pattern)은 **컬렉션의 내부 구조를 노출하지 않으면서 순차적으로 요소에 접근**할 수 있게 하는 행동 디자인 패턴이다. 컬렉션과 순회 로직을 분리하여 일관된 방식으로 다양한 컬렉션을 탐색할 수 있다.
 
-이 패턴은 복잡한 자료구조를 순회하거나, 다양한 순회 방식을 제공하거나, 컬렉션의 내부 구조를 숨기고 싶을 때 유용하다. JavaScript/TypeScript에서는 내장 이터레이터 프로토콜을 통해 for...of 루프와 함께 사용된다.
+복잡한 자료구조를 순회하거나, 다양한 순회 방식을 제공하거나, 컬렉션의 내부 구조를 숨기고 싶을 때 유용하다. TypeScript에서는 내장 이터레이터 프로토콜을 통해 `for...of` 루프와 함께 사용된다.
 
-## JavaScript로 이터레이터 패턴 구현하기
+## TypeScript로 이터레이터 패턴 구현하기
 
-배열과 같은 단순한 자료구조는 인덱스로 접근할 수 있지만, 복잡한 자료구조는 순회 방법이 명확하지 않다.
+배열과 같은 단순한 자료구조는 인덱스로 접근할 수 있지만, 복잡한 자료구조는 순회 방법이 명확하지 않다. 또한 내부 구조를 직접 노출하면 캡슐화가 깨지고 유지보수가 어려워진다.
 
-```javascript
+```typescript
 class BookCollection {
-  constructor() {
-    this.books = [];
-  }
+  private books: Array<{ title: string; author: string }> = [];
 
-  addBook(book) {
+  addBook(book: { title: string; author: string }): void {
     this.books.push(book);
   }
 
-  getBooks() {
+  getBooks(): Array<{ title: string; author: string }> {
     return this.books; // 내부 구조 노출
   }
 }
@@ -43,53 +40,62 @@ for (let i = 0; i < books.length; i++) {
 }
 ```
 
-위 코드는 내부 배열을 직접 노출하여 캡슐화를 위반하며, 컬렉션의 내부 구조에 의존하게 된다.
+위 코드는 `getBooks()` 메서드가 내부 배열을 직접 반환하여 사용하는 쪽에서는 컬렉션이 배열로 구현되어 있다는 것을 알고 있어야 하며, 만약 내부 구현이 다른 자료구조로 변경되면 모든 사용하는 코드를 수정해야 한다.
+
+또한 내부 배열을 직접 반환하면 외부에서 배열을 수정할 수 있어 데이터 무결성이 보장되지 않는다.
 
 ### 기본 구현
 
-이터레이터 패턴은 순회 로직을 별도의 이터레이터 객체로 분리한다.
+이터레이터 패턴은 순회 로직을 별도의 이터레이터 객체로 분리하여, 컬렉션의 내부 구조를 숨기고 일관된 인터페이스로 요소에 접근할 수 있게 한다.
 
-```javascript
-class Book {
-  constructor(title, author, year) {
-    this.title = title;
-    this.author = author;
-    this.year = year;
-  }
+```typescript
+interface Iterator<T> {
+  hasNext(): boolean;
+  next(): T | null;
+  reset(): void;
 }
 
-class BookIterator {
-  constructor(books) {
-    this.books = books;
-    this.currentIndex = 0;
-  }
+interface Iterable<T> {
+  createIterator(): Iterator<T>;
+}
 
-  hasNext() {
+class Book {
+  constructor(
+    public title: string,
+    public author: string,
+    public year: number
+  ) {}
+}
+
+class BookIterator implements Iterator<Book> {
+  private currentIndex: number = 0;
+
+  constructor(private books: Book[]) {}
+
+  hasNext(): boolean {
     return this.currentIndex < this.books.length;
   }
 
-  next() {
+  next(): Book | null {
     if (this.hasNext()) {
       return this.books[this.currentIndex++];
     }
     return null;
   }
 
-  reset() {
+  reset(): void {
     this.currentIndex = 0;
   }
 }
 
-class BookCollection {
-  constructor() {
-    this.books = [];
-  }
+class BookCollection implements Iterable<Book> {
+  private books: Book[] = [];
 
-  addBook(book) {
+  addBook(book: Book): void {
     this.books.push(book);
   }
 
-  createIterator() {
+  createIterator(): Iterator<Book> {
     return new BookIterator(this.books);
   }
 }
@@ -105,45 +111,49 @@ const iterator = collection.createIterator();
 console.log("책 목록:");
 while (iterator.hasNext()) {
   const book = iterator.next();
-  console.log(`- ${book.title} (${book.author}, ${book.year})`);
+  if (book) {
+    console.log(`- ${book.title} (${book.author}, ${book.year})`);
+  }
 }
 ```
 
-`BookIterator`는 컬렉션의 순회 상태를 관리하며, `hasNext()`와 `next()` 메서드만 사용하면 된다. 컬렉션의 내부 구조가 변경되어도 이터레이터 인터페이스는 동일하게 유지된다.
+위 코드에서 `BookIterator`는 컬렉션의 순회 상태(`currentIndex`)를 내부적으로 관리한다. 사용하는 쪽에서는 `hasNext()`로 다음 요소가 있는지 확인하고, `next()`로 요소를 가져오기만 하면 되므로 컬렉션의 내부 구조를 알 필요가 없다.
 
-### JavaScript 이터레이터 프로토콜 활용
+`BookCollection`의 내부 구현이 배열에서 링크드 리스트나 해시 테이블로 변경되더라도, `BookIterator`의 구현만 수정하면 되고 사용하는 쪽 코드는 전혀 변경할 필요가 없다. 또한 내부 데이터를 직접 노출하지 않으므로, 외부에서 데이터를 수정할 수 없어 데이터 무결성이 보장된다.
 
-JavaScript ES6부터는 이터레이터 프로토콜이 내장되어 있어 `for...of` 루프와 함께 사용할 수 있다.
+### ES6 이터레이터 프로토콜 활용
 
-```javascript
+JavaScript ES6부터는 이터레이터 프로토콜이 내장되어 있어 `for...of` 루프와 함께 사용할 수 있다. `Symbol.iterator` 메서드를 구현하면 자동으로 이터러블(iterable) 객체가 되어, JavaScript의 다양한 내장 기능을 사용할 수 있다.
+
+별도의 이터레이터 클래스를 만들지 않고도 컬렉션 자체에 `Symbol.iterator` 메서드를 구현하면, `for...of` 루프, 전개 연산자, 배열 디스트럭처링 등을 바로 사용할 수 있다.
+
+```typescript
 class Book {
-  constructor(title, author, year) {
-    this.title = title;
-    this.author = author;
-    this.year = year;
-  }
+  constructor(
+    public title: string,
+    public author: string,
+    public year: number
+  ) {}
 }
 
 class BookCollection {
-  constructor() {
-    this.books = [];
-  }
+  private books: Book[] = [];
 
-  addBook(book) {
+  addBook(book: Book): void {
     this.books.push(book);
   }
 
   // 이터레이터 프로토콜 구현
-  [Symbol.iterator]() {
+  [Symbol.iterator](): Iterator<Book> {
     let index = 0;
     const books = this.books;
 
     return {
-      next() {
+      next(): IteratorResult<Book> {
         if (index < books.length) {
           return { value: books[index++], done: false };
         } else {
-          return { done: true };
+          return { done: true, value: undefined };
         }
       },
     };
@@ -170,11 +180,15 @@ const [first, second] = collection;
 console.log(`첫 번째: ${first.title}, 두 번째: ${second.title}`);
 ```
 
-`Symbol.iterator` 메서드를 구현하면 JavaScript의 다양한 이터러블 기능을 사용할 수 있다. `for...of` 루프, 전개 연산자, 배열 디스트럭처링 등이 모두 이터레이터 프로토콜을 기반으로 동작한다.
+위 코드에서 `Symbol.iterator` 메서드는 `IteratorResult<Book>` 타입의 객체를 반환하는 `next()` 메서드를 가진 객체를 반환한다.
 
-### TypeScript로 타입 안전성 강화하기
+`BookCollection`은 자동으로 이터러블 객체가 되어, `for...of` 루프, 전개 연산자(`...`), 배열 디스트럭처링, `Array.from()` 등 JavaScript의 다양한 내장 기능을 바로 사용할 수 있다. 별도의 이터레이터 클래스를 만들 필요 없이 컬렉션 자체가 순회 가능한 객체가 되므로 더 간결하게 코드를 작성할 수 있다.
 
-TypeScript를 사용하면 이터레이터 인터페이스를 명시적으로 정의할 수 있다.
+### 다양한 순회 방식 제공
+
+동일한 컬렉션에 대해 여러 가지 순회 방식을 제공해야 할 때, 각 순회 방식을 별도의 이터레이터 클래스로 구현할 수 있다.
+
+예를 들어 정방향 순회와 역방향 순회를 모두 지원하려면, 각각 `BookIterator`와 `ReverseBookIterator`를 만들고 둘 다 `Iterator<Book>` 인터페이스를 구현하면 된다.
 
 ```typescript
 interface Iterator<T> {
@@ -276,128 +290,15 @@ while (reverseIterator.hasNext()) {
 }
 ```
 
-인터페이스를 통해 이터레이터의 계약을 명확히 정의하고, 다양한 순회 방식을 제공할 수 있다. `ReverseBookIterator`는 역방향 순회를 구현하며, 동일한 인터페이스로 두 이터레이터를 사용할 수 있다.
+위 코드에서 `BookIterator`는 정방향으로 순회하고, `ReverseBookIterator`는 `currentIndex`를 역방향으로 순회한다.
 
-### 실제 사용 예제: 트리 순회
-
-```typescript
-class TreeNode<T> {
-  constructor(
-    public value: T,
-    public children: TreeNode<T>[] = []
-  ) {}
-
-  addChild(child: TreeNode<T>): void {
-    this.children.push(child);
-  }
-}
-
-class TreeIterator<T> implements Iterator<T> {
-  private stack: TreeNode<T>[] = [];
-
-  constructor(root: TreeNode<T>) {
-    this.stack.push(root);
-  }
-
-  hasNext(): boolean {
-    return this.stack.length > 0;
-  }
-
-  next(): T | null {
-    if (!this.hasNext()) return null;
-
-    const node = this.stack.pop()!;
-
-    // 자식 노드를 스택에 추가 (역순으로 추가하여 왼쪽부터 순회)
-    for (let i = node.children.length - 1; i >= 0; i--) {
-      this.stack.push(node.children[i]);
-    }
-
-    return node.value;
-  }
-
-  reset(): void {
-    this.stack = [];
-  }
-}
-
-class BreadthFirstIterator<T> implements Iterator<T> {
-  private queue: TreeNode<T>[] = [];
-
-  constructor(root: TreeNode<T>) {
-    this.queue.push(root);
-  }
-
-  hasNext(): boolean {
-    return this.queue.length > 0;
-  }
-
-  next(): T | null {
-    if (!this.hasNext()) return null;
-
-    const node = this.queue.shift()!;
-
-    // 자식 노드를 큐에 추가
-    node.children.forEach((child) => this.queue.push(child));
-
-    return node.value;
-  }
-
-  reset(): void {
-    this.queue = [];
-  }
-}
-
-class Tree<T> implements Iterable<T> {
-  constructor(private root: TreeNode<T>) {}
-
-  createIterator(): Iterator<T> {
-    return new TreeIterator(this.root);
-  }
-
-  createBreadthFirstIterator(): Iterator<T> {
-    return new BreadthFirstIterator(this.root);
-  }
-
-  getRoot(): TreeNode<T> {
-    return this.root;
-  }
-}
-
-// 사용 예제
-const root = new TreeNode("Root");
-const child1 = new TreeNode("Child 1");
-const child2 = new TreeNode("Child 2");
-const child3 = new TreeNode("Child 3");
-const grandchild1 = new TreeNode("Grandchild 1");
-const grandchild2 = new TreeNode("Grandchild 2");
-
-root.addChild(child1);
-root.addChild(child2);
-root.addChild(child3);
-child1.addChild(grandchild1);
-child1.addChild(grandchild2);
-
-const tree = new Tree(root);
-
-console.log("깊이 우선 순회 (DFS):");
-const dfsIterator = tree.createIterator();
-while (dfsIterator.hasNext()) {
-  console.log(`- ${dfsIterator.next()}`);
-}
-
-console.log("\n너비 우선 순회 (BFS):");
-const bfsIterator = tree.createBreadthFirstIterator();
-while (bfsIterator.hasNext()) {
-  console.log(`- ${bfsIterator.next()}`);
-}
-```
-
-트리 구조에서 깊이 우선 탐색(DFS)과 너비 우선 탐색(BFS)을 각각의 이터레이터로 구현했다. 동일한 트리 자료구조에 대해 다양한 순회 방식을 제공하며, 이터레이터 인터페이스만 사용하면 된다.
+두 이터레이터 모두 동일한 `Iterator<Book>` 인터페이스를 구현하므로, 사용하는 쪽에서는 어떤 이터레이터를 사용하든 `hasNext()`와 `next()` 메서드만 사용하면 된다. 이렇게 하면 정방향과 역방향 순회를 동일한 방식으로 처리할 수 있으며, 새로운 순회 방식을 추가해도 기존 코드를 수정하지 않아도 된다.
 
 ### 제너레이터를 활용한 이터레이터
 
-JavaScript/TypeScript의 제너레이터 함수를 사용하면 이터레이터를 더 간단하게 구현할 수 있다.
+제너레이터 함수를 사용하면 이터레이터를 더 간단하게 구현할 수 있다. 제너레이터는 `function*` 문법으로 정의하며, `yield` 키워드로 값을 하나씩 반환한다. 제너레이터 함수는 자동으로 이터레이터 프로토콜을 구현하므로, 별도의 `next()` 메서드를 작성할 필요가 없다.
+
+제너레이터의 가장 큰 장점은 모든 값을 미리 생성하지 않고 필요할 때마다 생성하므로, 대용량 데이터를 다룰 때 메모리 효율적이다.
 
 ```typescript
 class Range {
@@ -451,34 +352,36 @@ const numbers = [...range];
 console.log(numbers); // [1, 3, 5, 7, 9]
 ```
 
-제너레이터 함수는 `yield` 키워드로 값을 하나씩 반환하며, 자동으로 이터레이터 프로토콜을 구현한다. 복잡한 상태 관리 없이 간결하게 이터레이터를 만들 수 있고, 지연 평가를 통해 필요한 값만 생성한다.
+위 코드에서 `*[Symbol.iterator]()`는 제너레이터 메서드로, `yield` 키워드를 사용하여 값을 하나씩 반환한다. `*reverse()`와 `*filter()`도 제너레이터 메서드로, 각각 역방향 순회와 필터링된 순회를 제공한다.
+
+제너레이터 함수는 자동으로 이터레이터 프로토콜을 구현하므로, 별도의 `next()` 메서드나 상태 관리 로직을 작성할 필요가 없다. `yield`를 만나면 함수 실행이 일시 중지되고 값을 반환하며, 다음 `next()` 호출 시 그 다음 줄부터 계속 실행된다.
+
+클래스 기반 이터레이터와 달리 제너레이터는 복잡한 상태 관리 없이 간결하게 이터레이터를 만들 수 있다. 또한 **지연 평가**(lazy evaluation)를 통해 필요한 값만 생성하므로, 전체 범위를 메모리에 올리지 않고도 순회할 수 있어 대용량 데이터를 다룰 때 효율적이다.
+
+예를 들어 `Range(1, 1000000)`을 생성해도 실제로는 `for...of` 루프에서 요청하는 값만 생성되므로, 메모리 사용량이 크게 줄어든다. 또한 `filter()` 메서드처럼 조건에 맞는 값만 생성하므로 불필요한 계산을 피할 수 있다.
 
 ## 이터레이터 패턴의 장점
 
-이터레이터 패턴을 사용하면 **캡슐화가 향상**된다. 컬렉션의 내부 구조를 노출하지 않고도 요소에 접근할 수 있다.
+컬렉션의 내부 구조를 노출하지 않고도 요소에 접근할 수 있어, 내부 구현이 변경되어도 사용하는 쪽 코드를 수정할 필요가 없다. `hasNext()`와 `next()` 메서드만 사용하면 되므로, 컬렉션의 종류에 관계없이 동일한 방식으로 요소에 접근할 수 있다.
 
-**단일 책임 원칙(SRP)** 준수 측면에서도 이터레이터 패턴은 유용하다. 컬렉션 관리와 순회 로직을 분리하여 각각의 책임을 명확히 한다.
+컬렉션 관리와 순회 로직을 분리하여 각각의 책임을 명확히 한다. 컬렉션은 데이터를 관리하는 역할만 하고, 이터레이터는 순회하는 역할만 담당하므로 **단일 책임 원칙**을 준수한다.
 
-**다양한 순회 방식 제공**이 가능하다는 점도 중요한 장점이다. 동일한 컬렉션에 대해 정방향, 역방향, 필터링 등 다양한 이터레이터를 제공할 수 있다.
-
-**일관된 인터페이스**를 통해 다양한 컬렉션을 동일한 방식으로 순회할 수 있다. 배열, 트리, 그래프 등 내부 구조가 다르더라도 같은 이터레이터 인터페이스를 사용한다.
+동일한 컬렉션에 대해 정방향, 역방향, 필터링 등 **다양한 순회 방식을 제공**할 수 있다. 각 순회 방식은 별도의 이터레이터 클래스로 구현하므로, 새로운 순회 방식을 추가해도 기존 코드를 수정하지 않아도 된다.
 
 ## 이터레이터 패턴의 단점
 
-이터레이터 패턴을 사용할 때는 **간단한 컬렉션의 복잡도 증가** 문제를 고려해야 한다. 배열처럼 단순한 자료구조에 이터레이터를 추가하면 오히려 코드가 복잡해질 수 있다.
+JavaScript 내장 배열 메서드나 `for...of` 루프만으로 충분한 경우가 많으므로, 배열처럼 단순한 자료구조에 이터레이터를 추가하면 오히려 코드가 복잡해질 수 있다.
 
-**추가 메모리 사용**도 문제가 될 수 있다. 이터레이터 객체가 순회 상태를 저장하므로 메모리를 추가로 사용한다.
+이터레이터 객체가 순회 상태(`currentIndex`, `stack`, `queue` 등)를 저장하므로 **추가 메모리 사용**이 발생한다. 특히 여러 이터레이터를 동시에 사용하는 경우 메모리 사용량이 증가할 수 있다.
 
-**성능 오버헤드** 가능성도 존재한다. 직접 인덱스로 접근하는 것보다 이터레이터를 통한 접근이 약간 느릴 수 있다.
+직접 인덱스로 접근하는 것보다 이터레이터를 통한 접근이 약간 느릴 수 있다. 메서드 호출 오버헤드와 상태 관리 비용으로 인해 **성능 오버헤드**가 발생할 수 있다.
 
 ## 이터레이터 패턴 사용 시 고려사항
 
-이터레이터 패턴은 **복잡한 자료구조를 순회해야 하는 경우**에 유용하다. 트리, 그래프, 커스텀 컬렉션 등 내부 구조가 복잡한 경우 이터레이터가 순회를 단순화한다.
+이터레이터 패턴은 **복잡한 자료구조를 순회해야 하는 경우**에 유용하다. 트리, 그래프 등 내부 구조가 복잡한 경우 이터레이터가 순회를 단순화하고, 사용하는 쪽에서는 복잡한 내부 구조를 알 필요 없이 요소에 접근할 수 있다.
 
-**컬렉션의 내부 구조를 숨기고 싶은 경우**에도 이터레이터 패턴이 적합하다. 구현 세부사항을 노출하지 않고 요소에 접근할 수 있는 인터페이스를 제공한다.
+구현 세부사항을 노출하지 않고 요소에 접근할 수 있는 인터페이스를 제공하여, **컬렉션의 내부 구조를 숨기고 싶은 경우** 이터레이터 패턴이 적합하다.
 
-**다양한 순회 방식이 필요한 경우**라면 이터레이터 패턴을 고려해볼 만하다. 같은 데이터를 여러 방식으로 순회해야 할 때 각각의 이터레이터를 만들면 된다.
+동일한 데이터를 정방향, 역방향, 필터링 등 **다양한 순회 방식이 필요한 경우** 각각의 이터레이터를 만들면 되며, 새로운 순회 방식을 추가해도 기존 코드를 수정하지 않아도 된다.
 
-반면 **단순한 배열이나 리스트만 사용하는 경우**에는 이터레이터 패턴이 과도할 수 있다. JavaScript 내장 배열 메서드나 `for...of` 루프만으로 충분한 경우가 많다. **성능이 매우 중요하고 컬렉션이 단순한 경우**에도 직접 인덱스로 접근하는 것이 더 효율적일 수 있다.
-
-이터레이터 패턴은 복잡한 컬렉션의 순회를 캡슐화하고 다양한 순회 방식을 제공하는 데 매우 유용한 디자인 패턴이다.
+반면 **단순한 배열이나 리스트만 사용하는 경우**에는 언어에 내장된 배열 메서드를 사용해도 충분한 경우가 많다. **성능이 매우 중요하고 컬렉션이 단순한 경우**에도 직접 인덱스로 접근하는 것이 더 효율적일 수 있다.

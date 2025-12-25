@@ -1,7 +1,7 @@
 ---
 title: "옵저버 패턴 (Observer Pattern)"
 summary: "TypeScript/JavaScript에서 옵저버 패턴 구현"
-date: "Dec 24 2024"
+date: "Mar 30 2024"
 draft: false
 tags:
   - Design Pattern
